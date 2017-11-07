@@ -27,6 +27,6 @@ var path = require("path");
 app.use("/admin", express.static(path.join(__dirname, "public/admin")));
 app.use("/watch", express.static(path.join(__dirname, "public/watch")));
 
-//Route
-var webservice = require("./app/routes/default.route.js"); 
-app.use(defaultRoute);
+//Route presentation
+var presentationRoute = require("./app/routes/presentation.route.js"); 
+app.use(presentationRoute);
