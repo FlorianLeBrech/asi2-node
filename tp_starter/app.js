@@ -1,6 +1,8 @@
 var express = require("express");
 var app = express();
 var http = require("http");
+var bodyParser = require('body-parser');
+var path = require("path");
 
 // Gestion de la variable CONFIG
 var CONFIG = require("./config.json");
@@ -17,13 +19,13 @@ var server = http.createServer(app);
 server.listen(CONFIG.port);
 
 //Gestion des routes
-
+app.use(bodyParser.json());
 //Route par défaut 
 var defaultRoute = require("./app/routes/default.route.js"); 
 app.use(defaultRoute);
 
 //Route static 
-var path = require("path");
+
 app.use("/admin", express.static(path.join(__dirname, "public/admin")));
 app.use("/watch", express.static(path.join(__dirname, "public/watch")));
 

@@ -7,6 +7,7 @@ var path = require("path");
 var CONFIG = require("./../../config.json");
 var absolutePathContentDirectory = path.resolve(CONFIG.contentDirectory);
 
+//Load de la présentation 
 router.route("/loadPres") 
  .all(function(request, response){
     const fs = require('fs');
@@ -16,18 +17,22 @@ router.route("/loadPres")
     fs.readdir(absolutePathPresentationDirectory, (err, files) => {
         //lecture du fichier
         files.forEach(file => {
-           // console.log(absolutePathPresentationDirectory+'\\'+file);
-            var test = absolutePathPresentationDirectory+'\\'+file;
-            //Lecture du JSON
-            jf.readFile( test, function(errFile, obj) {
+           var test = absolutePathPresentationDirectory+'\\'+file;             
+           //  var test = absolutePathPresentationDirectory+'\\'+file;
+           //Lecture du JSON
+           jf.readFile( test, function(errFile, obj) {
                 response.send(obj);                
             });      
         });
     })    
  })
-    
+
+ //Sauvegarde de la présentation
  router.route("/savePres") 
- .all(function(request, response){
-    response.send("it works");
- })
+ .post(function(request, response){
+    if (request.body.id){
+
+    }    
+
+})
     
