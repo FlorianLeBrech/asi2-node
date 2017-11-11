@@ -8,21 +8,30 @@ var absolutePathContentDirectory = path.resolve(CONFIG.contentDirectory);
 
 class ContentModel{
     
-    constructor(jsonContent) {
-        this.type = jsonContent.type;
+    constructor() {
+
+    }
+    setData(data){
+        this._data=data;
+    }
+    getData(){
+        return this._data;
+    }
+    /*constructor(jsonContent) {
+        this.type = jsonContent.body.type;
         this.id = utils.generateUUID();
-        this.title = jsonContent.title; 
-        this.src = jsonContent.src; 
+        this.title = jsonContent.body.title; 
+        this.src = jsonContent.body.src; 
         this.fileName = utils.getNewFileName();
         //Gestion du champ data
-         // this.data = jsonContent.data;
+       // this.data = jsonContent.body.data;
         /*var request = require('request').defaults({ encoding: null });        
         request.get(this.jsonContent.src, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                     data = new Buffer(body);
             }
         })*/
-    }
+    //}
 
 
     //Fonctions lié à la classe (static)
@@ -36,7 +45,7 @@ class ContentModel{
         switch(ContentModel.type){
             case "img" : 
                 //Stockage du fichier Json
-                jf.writeFile(contentMetaJsonFileName, JSON.parse(ContentModel),function(err){
+                jf.writeFile(contentMetaJsonFileName, ContentModel,function(err){
                     if (err) throw err;
                 })
                 //Stockage de Content
@@ -46,13 +55,13 @@ class ContentModel{
                 break;
             case "img_url" :
                 //Stockage du fichier Json
-                jf.writeFile(contentMetaJsonFileName,JSON.parse(ContentModel),function(err){
+                jf.writeFile(contentMetaJsonFileName,ContentModel,function(err){
                     if (err) throw err;
                 })
                 break;
             case "video" : 
                 //Stockage du fichier Json
-                jf.writeFile(contentMetaJsonFileName,JSON.parse(ContentModel),function(err){
+                jf.writeFile(contentMetaJsonFileName,ContentModel,function(err){
                     if (err) throw err;
                 })
                 //Stockage de Content
@@ -62,7 +71,7 @@ class ContentModel{
                 break;
             case "web" : 
                 //Stockage du fichier Json
-                jf.writeFile(contentMetaJsonFileName,JSON.parse(ContentModel),function(err){
+                jf.writeFile(contentMetaJsonFileName,ContentModel,function(err){
                     if (err) throw err;
                 })
                 //Stockage de Content
@@ -71,6 +80,9 @@ class ContentModel{
                 })
                 break;                
             default : 
+                jf.writeFile(contentMetaJsonFileName,ContentModel,function(err){
+                    if (err) throw err;
+                })
                 break;
         }
    }
@@ -99,6 +111,22 @@ class ContentModel{
     }
     
     static delete(id, callback) {
-      
+        var contentMetaJsonFileName = path.join(absolutePathContentDirectory, id + ".meta.json");
+        var contentFileName = path.join(absolutePathContentDirectory, id);
+        if  (utils.fileExists(contentFileName())){
+            fs.unlink(contentFileName,function(err){
+                if(err) return console.log(err);
+                console.log('file deleted successfully');
+           });  
+        }
+        if  (utils.fileExists(contentMetaJsonFileName())){
+            fs.unlink(contentMetaJsonFileName,function(err){
+                if(err) return console.log(err);
+                console.log('file deleted successfully');
+           });  
+        }
+
     }
 }
+
+module.exports = ContentModel
