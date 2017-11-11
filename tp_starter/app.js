@@ -13,13 +13,15 @@ process.env.CONFIG = JSON.stringify(CONFIG);
 // IMPORTANT  : dans les autres modules, l'accès à la configuration sera faite comme cela
 // var CONFIG = JSON.parse(process.env.CONFIG); 
 
+//Parge automatique des datas
+app.use(bodyParser.json());
 
-// init server
-var server = http.createServer(app);
-server.listen(CONFIG.port);
+//app.use(function (err, req, res) {
+//
+//})
 
 //Gestion des routes
-app.use(bodyParser.json());
+
 //Route par défaut 
 var defaultRoute = require("./app/routes/default.route.js"); 
 app.use(defaultRoute);
@@ -32,3 +34,7 @@ app.use("/watch", express.static(path.join(__dirname, "public/watch")));
 //Route presentation
 var presentationRoute = require("./app/routes/presentation.route.js"); 
 app.use(presentationRoute);
+
+// init server
+var server = http.createServer(app);
+server.listen(CONFIG.port);
