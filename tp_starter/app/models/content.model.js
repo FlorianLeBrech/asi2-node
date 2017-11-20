@@ -1,132 +1,181 @@
+'use strict';
+
 var CONFIG = require("./../../config.json");
 var path = require("path");
-var utils = require ("./../utils/utils.js");
+var utils = require("./../utils/utils.js");
 var jf = require('jsonfile');
 var fs = require('fs');
 var absolutePathContentDirectory = path.resolve(CONFIG.contentDirectory);
 
 
-class ContentModel{
-    
-    constructor() {
+class ContentModel {
+
+// traitement peut être a améliorer / revoir
+    constructor(jsonContent) {       
+
+        if (jsonContent != undefined) {
+
+            if (jsonContent.body == undefined){
+                return (new Error("Le fichier n'est pas de type json"));            
+            } 
+            if (jsonContent.body.id==null){
+                return (new Error("L'id ne doit pas être null"));
+            } 
+            if (jsonContent.body.title==null){
+                return (new Error("Le titre ne doit pas être null"));
+            }  
+            if (jsonContent.body.type==null){
+                return (new Error("Le type ne doit pas être null"));
+            } 
+            if (jsonContent.body.src==null){
+                return (new Error("Le src ne doit pas être null"));
+            }   
+            this.type = jsonContent.body.type
+            this.title = jsonContent.body.title;
+            this.src = jsonContent.body.src;
+            this.fileName = jsonContent.body.fileName;
+            this.id = jsonContent.body.id;
+        }
+        else {
+            this.id = utils.generateUUID();
+            this.title = "";
+            this.type = "";
+            this.src = "";
+            this.fileName = "";
+        }
+        //Gestion du champ data
+        var data = "";
+        this.getData = function () { return data; };
+        this.setData = function (newData) { data = newData; };
 
     }
-    setData(data){
-        this._data=data;
-    }
-    getData(){
-        return this._data;
-    }
-    /*constructor(jsonContent) {
-        this.type = jsonContent.body.type;
-        this.id = utils.generateUUID();
-        this.title = jsonContent.body.title; 
-        this.src = jsonContent.body.src; 
-        this.fileName = utils.getNewFileName();
-        //Gestion du champ data
-       // this.data = jsonContent.body.data;
-        /*var request = require('request').defaults({ encoding: null });        
-        request.get(this.jsonContent.src, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                    data = new Buffer(body);
-            }
-        })*/
-    //}
 
 
     //Fonctions lié à la classe (static)
-    static create(ContentModel, callback) {
+    static create(contentModel, callback) {
+
+        //test contentModel
+        if (contentModel != undefined) {
+            
+        if (contentModel.type == undefined){
+            return callback(new Error("Le fichier n'est pas de type json"));            
+        } 
+        if (contentModel.id==undefined){
+            return callback(new Error("L'id ne doit pas être null"));
+        } 
+        if (contentModel.title==undefined){
+            return callback(new Error("Le titre ne doit pas être null"));
+        }  
+        if (contentModel.type==undefined){
+            return callback(new Error("Le type ne doit pas être null"));
+        } 
+        if (contentModel.src==undefined){
+            return callback(new Error("Le src ne doit pas être null"));
+        }   
 
         //Gestion des chemins
-        var contentMetaJsonFileName = path.join(absolutePathContentDirectory, ContentModel.id + ".meta.json");
-        var contentFileName = path.join(absolutePathContentDirectory, ContentModel.id);
-        
+        var contentMetaJsonFileNamePath = utils.getMetaFilePath(contentModel.id);
+        var contentFileName = utils.getDataFilePath(contentModel.fileName);
+
+        var data = false;
+
+
+
         // gestion des case avancé 
-        switch(ContentModel.type){
-            case "img" : 
-                //Stockage du fichier Json
-                jf.writeFile(contentMetaJsonFileName, ContentModel,function(err){
-                    if (err) throw err;
-                })
-                //Stockage de Content
-                jf.writeFile(contentMetaJsonFileName,contentFileName.data,function(err){
-                    if (err) throw err;
-                })
-                break;
-            case "img_url" :
-                //Stockage du fichier Json
-                jf.writeFile(contentMetaJsonFileName,ContentModel,function(err){
-                    if (err) throw err;
-                })
-                break;
-            case "video" : 
-                //Stockage du fichier Json
-                jf.writeFile(contentMetaJsonFileName,ContentModel,function(err){
-                    if (err) throw err;
-                })
-                //Stockage de Content
-                jf.writeFile(contentMetaJsonFileName,contentFileName.data,function(err){
-                    if (err) throw err;
-                })
-                break;
-            case "web" : 
-                //Stockage du fichier Json
-                jf.writeFile(contentMetaJsonFileName,ContentModel,function(err){
-                    if (err) throw err;
-                })
-                //Stockage de Content
-                jf.writeFile(contentMetaJsonFileName,contentFileName.data,function(err){
-                    if (err) throw err;
-                })
-                break;                
-            default : 
-                jf.writeFile(contentMetaJsonFileName,ContentModel,function(err){
-                    if (err) throw err;
-                })
-                break;
-        }
-   }
-    
-    static read(id, callback) {
-        var absolutePathContentDirectory = path.resolve(CONFIG.contentDirectory);        
-        return utils.readFileIfExists(utils.getMetaFilePath(id));
-    }
-    
-    static update(ContentModel, callback) {
-        //Gestion des chemins
-        var contentMetaJsonFileName = path.join(absolutePathContentDirectory, ContentModel.id + ".meta.json");
-        var contentFileName = path.join(absolutePathContentDirectory, ContentModel.id);
-
-        jf.writeFile(contentMetaJsonFileName, JSON.parse(ContentModel),function(err){
-            if (err) throw err;
-        })
-        if (ContentModel.type=="img" && ContentModel.getData()!= null){
-            if (ContentModel.getData().length>0){
-                //Mise à jour du fichier 
-                jf.writeFile(contentMetaJsonFileName,contentFileName.data,function(err){
-                    if (err) throw err;
+        if (contentModel.getData() != null) {
+            if (contentModel.getData() != "") {
+                jf.writeFile(contentMetaJsonFileNamePath, contentModel, function (err) {
+                    if (err) return callback(err);
+                    fs.writeFile(contentFileName, contentModel.getData(), function (err) {
+                        if (err) return callback(err);
+                        data = true;
+                        return callback(null);
+                    })
                 })
             }
         }
-    }
-    
-    static delete(id, callback) {
-        var contentMetaJsonFileName = path.join(absolutePathContentDirectory, id + ".meta.json");
-        var contentFileName = path.join(absolutePathContentDirectory, id);
-        if  (utils.fileExists(contentFileName())){
-            fs.unlink(contentFileName,function(err){
-                if(err) return console.log(err);
-                console.log('file deleted successfully');
-           });  
+        if (data != true) {
+            jf.writeFile(contentMetaJsonFileNamePath, contentModel, function (err) {
+                if (err) return callback(err);
+            })
         }
-        if  (utils.fileExists(contentMetaJsonFileName())){
-            fs.unlink(contentMetaJsonFileName,function(err){
-                if(err) return console.log(err);
-                console.log('file deleted successfully');
-           });  
-        }
-
     }
 }
+
+    static read(id, callback) {
+
+        //test contentModel
+        if (id==null){
+            return callback(new Error("L'id ne doit pas être null"));
+        } 
+     
+        var contentMetaJsonFileNamePath = utils.getMetaFilePath(id);
+        utils.readFileIfExists(contentMetaJsonFileNamePath,
+            function (err, obj) {
+                if (err) throw err;
+                var contentModel = new ContentModel();
+                var tmp = JSON.parse(obj.toString());
+                contentModel.id = tmp.id;
+                contentModel.type = tmp.type;
+                contentModel.title = tmp.title;
+                contentModel.fileName = tmp.fileName;
+                return callback(null, contentModel);
+            });
+    }
+
+    static update(contentModel, callback) {
+        //test contentModel
+        if (contentModel.id==null){
+            return callback(new Error("L'id ne doit pas être null"));
+        } 
+        //Gestion des chemins
+        var contentMetaJsonFileNamePath = utils.getMetaFilePath(contentModel.id);
+        var contentFileName = utils.getDataFilePath(contentModel.id);
+
+        ContentModel.read(contentModel.id, function (err, data) {
+            if (err) return console.log(err);
+            var contentFileName = utils.getDataFilePath(data.fileName);
+            utils.fileExists(contentFileName,
+                function (err, obj) {
+                    if (err) return console.log(err);
+                    fs.unlink(contentFileName, function (err) {
+                        if (err) return console.log(err);
+                        console.log('data deleted successfully');
+                        ContentModel.create(contentModel, function (err) {
+                            if (err) return console.log(err);
+                            return callback(null);
+                        })
+                    })
+                })
+
+        })
+    }
+
+    static delete(id, callback) {
+        var contentMetaJsonFileNamePath = utils.getMetaFilePath(id);
+        ContentModel.read(id, function (err, data) {
+            if (err) return console.log(err);
+            var contentFileName = utils.getDataFilePath(data.fileName);
+            utils.fileExists(contentFileName,
+                function (err, obj) {
+                    if (err) return console.log(err);
+                    fs.unlink(contentFileName, function (err) {
+                        if (err) return console.log(err);
+                        console.log('data deleted successfully');
+                        utils.fileExists(contentMetaJsonFileNamePath,
+                            function (err, obj) {
+                                fs.unlink(contentMetaJsonFileNamePath, function (err) {
+                                    if (err) return console.log(err);
+                                    console.log('json deleted successfully');
+                                    return callback(null);
+                                })
+                            })
+                    })
+                })
+        })
+    }
+}
+
+
 
 module.exports = ContentModel

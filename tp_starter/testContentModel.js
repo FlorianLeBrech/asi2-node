@@ -5,6 +5,7 @@ process.env.CONFIG = JSON.stringify(CONFIG);
 
 var utils = require("./app/utils/utils.js");
 var ContentModel = require("./app/models/content.model.js");
+var path = require("path");
 
 var content = new ContentModel();
 
@@ -22,8 +23,8 @@ console.dir(content);
 console.log("-------------------------------");
 
 function countFile() {
-	var files = require('fs').readdirSync(CONFIG.contentDirectory);
-	console.log('Count files : ' + files.length + ' files in ' + CONFIG.contentDirectory);
+	var files = require('fs').readdirSync(path.resolve(CONFIG.contentDirectory));
+	console.log('Count files : ' + files.length + ' files in ' + path.resolve(CONFIG.contentDirectory));
 	return files.length;
 }
 
@@ -72,14 +73,15 @@ function testRead(content) {
     console.dir(content);
 
 	return new Promise((resolve, reject) => {
-		ContentModel.read(content.id, function(err, data) {
+		ContentModel.read(content.id, 
+			function(err, data) {
 			if (err) {
 				console.error(err);
 				return reject(err);
 			}
 			console.log(data);
 
-			return resolve(data);
+			return resolve(content);
 		});
 	});
 }

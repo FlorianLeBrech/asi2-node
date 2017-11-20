@@ -39,11 +39,14 @@ this.readFileIfExists = function(path, callback) {
 };
 
 this.getMetaFilePath = function(id) {
-	return path.join(CONFIG.contentDirectory, id + ".meta.json");
+	return path.join(path.resolve(CONFIG.contentDirectory), id + ".meta.json");
 };
 
 this.getDataFilePath = function(fileName) {
-	return path.join(CONFIG.contentDirectory, fileName);
+	return path.join(path.resolve(CONFIG.contentDirectory), fileName);
+};
+this.getPresentationPath = function(fileName) {
+	return path.join(path.resolve(CONFIG.presentationDirectory), fileName);
 };
 
 this.getNewFileName = function(id, originalFileName) {
