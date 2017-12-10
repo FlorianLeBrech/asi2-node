@@ -1,6 +1,6 @@
 'use strict';
 
-var CONFIG = require("./../../config.json");
+var CONFIG = JSON.parse(process.env.CONFIG);
 var path = require("path");
 var utils = require("./../utils/utils.js");
 var jf = require('jsonfile');
@@ -13,28 +13,19 @@ class ContentModel {
 // traitement peut être a améliorer / revoir
     constructor(jsonContent) {       
 
-        if (jsonContent != undefined) {
-
-            if (jsonContent.body == undefined){
-                return (new Error("Le fichier n'est pas de type json"));            
-            } 
-            if (jsonContent.body.id==null){
-                return (new Error("L'id ne doit pas être null"));
-            } 
-            if (jsonContent.body.title==null){
-                return (new Error("Le titre ne doit pas être null"));
-            }  
-            if (jsonContent.body.type==null){
-                return (new Error("Le type ne doit pas être null"));
-            } 
-            if (jsonContent.body.src==null){
-                return (new Error("Le src ne doit pas être null"));
-            }   
-            this.type = jsonContent.body.type
-            this.title = jsonContent.body.title;
-            this.src = jsonContent.body.src;
-            this.fileName = jsonContent.body.fileName;
-            this.id = jsonContent.body.id;
+        if (!!jsonContent) {
+          /*
+            this.type = (!!jsonContent && !!jsonContent.type) ? jsonContent.body.type : null;
+            this.title = (!!jsonContent && !!jsonContent.title) ? jsonContent.body.title : null;
+            this.src = (!!jsonContent && !!jsonContent.src) ? jsonContent.body.src : null;
+            this.fileName = (!!jsonContent && !!jsonContent.fileName) ? jsonContent.body.fileName : null;
+            this.id = (!!jsonContent && !!jsonContent.title) ? jsonContent.body.id : this.id = utils.generateUUID();
+          */
+            this.type = (!!jsonContent && !!jsonContent.type) ? jsonContent.type : null;
+            this.title = (!!jsonContent && !!jsonContent.title) ? jsonContent.title : null;
+            this.src = (!!jsonContent && !!jsonContent.src) ? jsonContent.src : null;
+            this.fileName = (!!jsonContent && !!jsonContent.fileName) ? jsonContent.fileName : null;
+            this.id = (!!jsonContent && !!jsonContent.title) ? jsonContent.id : this.id = utils.generateUUID();
         }
         else {
             this.id = utils.generateUUID();
@@ -47,7 +38,6 @@ class ContentModel {
         var data = "";
         this.getData = function () { return data; };
         this.setData = function (newData) { data = newData; };
-
     }
 
 
@@ -82,8 +72,7 @@ class ContentModel {
 
 
         // gestion des case avancé 
-        if (contentModel.getData() != null) {
-            if (contentModel.getData() != "") {
+        if (!!contentModel.getData() ) {
                 jf.writeFile(contentMetaJsonFileNamePath, contentModel, function (err) {
                     if (err) return callback(err);
                     fs.writeFile(contentFileName, contentModel.getData(), function (err) {
@@ -92,11 +81,11 @@ class ContentModel {
                         return callback(null);
                     })
                 })
-            }
         }
-        if (data != true) {
+        else {
             jf.writeFile(contentMetaJsonFileNamePath, contentModel, function (err) {
                 if (err) return callback(err);
+                return callback(null);                
             })
         }
     }
@@ -108,19 +97,19 @@ class ContentModel {
         if (id==null){
             return callback(new Error("L'id ne doit pas être null"));
         } 
-     
         var contentMetaJsonFileNamePath = utils.getMetaFilePath(id);
         utils.readFileIfExists(contentMetaJsonFileNamePath,
             function (err, obj) {
-                if (err) throw err;
+                if (err) return callback(err);
                 var contentModel = new ContentModel();
                 var tmp = JSON.parse(obj.toString());
                 contentModel.id = tmp.id;
                 contentModel.type = tmp.type;
                 contentModel.title = tmp.title;
                 contentModel.fileName = tmp.fileName;
-                return callback(null, contentModel);
-            });
+                contentModel.src = tmp.src;
+                return callback(null, contentModel);                
+                 });
     }
 
     static update(contentModel, callback) {
@@ -133,7 +122,7 @@ class ContentModel {
         var contentFileName = utils.getDataFilePath(contentModel.id);
 
         ContentModel.read(contentModel.id, function (err, data) {
-            if (err) return console.log(err);
+            if (err) return callback(err);
             var contentFileName = utils.getDataFilePath(data.fileName);
             utils.fileExists(contentFileName,
                 function (err, obj) {
@@ -154,18 +143,20 @@ class ContentModel {
     static delete(id, callback) {
         var contentMetaJsonFileNamePath = utils.getMetaFilePath(id);
         ContentModel.read(id, function (err, data) {
-            if (err) return console.log(err);
+            if (err) return callback(err);
             var contentFileName = utils.getDataFilePath(data.fileName);
             utils.fileExists(contentFileName,
                 function (err, obj) {
-                    if (err) return console.log(err);
+                    if (err) return callback(err);
                     fs.unlink(contentFileName, function (err) {
-                        if (err) return console.log(err);
+                        if (err) return callback(err);
                         console.log('data deleted successfully');
                         utils.fileExists(contentMetaJsonFileNamePath,
                             function (err, obj) {
+                                if (err) return callback(err);
+                                
                                 fs.unlink(contentMetaJsonFileNamePath, function (err) {
-                                    if (err) return console.log(err);
+                                    if (err) return callback(err);
                                     console.log('json deleted successfully');
                                     return callback(null);
                                 })

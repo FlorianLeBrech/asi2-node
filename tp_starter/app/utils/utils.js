@@ -52,3 +52,31 @@ this.getPresentationPath = function(fileName) {
 this.getNewFileName = function(id, originalFileName) {
 	return id + '.' + originalFileName.split('.').pop();
 };
+
+
+//fonction de gestion de route avancé 
+this.checkAuthAdmin = function (req, res, next) {
+	if (req == undefined) {
+		//res.send('You have to login to view this page');
+	}
+	else if (req.session== undefined){
+		res.sent("You have to login to view this page");
+	}
+	else {
+		if (req.session.role="admin"){
+			next();
+		}
+		else {
+			res.send('You are not authorized to view this page');            
+		}
+	}
+  }
+  
+ this.checkAuthWatcher = function (req, res, next) {
+	if (!req.session.user_id) {
+	  res.send('You have to login to view this page');
+	}
+	else {
+	  next();
+	}
+  }
